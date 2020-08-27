@@ -14,8 +14,10 @@ int main()
 	Client::Metadata metadata;
 	std::cout << "Username: " << metadata.username << std::endl; 
 	std::cout << "Proccess ID: " << metadata.processId << std::endl;
+	std::cout << "Proccess Name: " << metadata.processName << std::endl;
+	std::cout << "Proccess x86: " << metadata.is64 << std::endl;
 
-	/*if (Network::Initialize())
+	if (Network::Initialize())
 	{
 		std::cout << "Winsock api successfully initialized." << std::endl;
 		Socket socket;
@@ -57,7 +59,7 @@ int main()
 		{
 			std::cerr << "Socket failed to create." << std::endl;
 		}
-	}*/
+	}
 	Network::Shutdown();
 	system("pause");
 	return 0;
