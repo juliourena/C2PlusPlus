@@ -10,27 +10,50 @@ int main()
 	{
 		std::cout << "Winsock api successfully initialized." << std::endl;
 
-		IPEndpoint test("www.google.com", 8888);
-		if (test.GetIPVersion() == IPVersion::IPv4)
-		{
-			std::cout << "Hostname:" << test.GetHostname() << std::endl;
-			std::cout << "IP:" << test.GetIPString() << std::endl;
-			std::cout << "Port:" << test.GetPort() << std::endl;
-			std::cout << "IP Bytes..." << std::endl;
-			for (auto& digit : test.GetIPBytes())
-			{
-				std::cout << (int)digit << std::endl;
-			}
-		}
-		else
-		{
-			std::cerr << "This is not an ipv4 address." << std::endl;
-		}
-
 		Socket socket;
 		if (socket.Create() == PResult::P_Success)
 		{
 			std::cout << "Socket successfully created." << std::endl;
+			if (socket.Listen(IPEndpoint("0.0.0.0", 8888)) == PResult::P_Success)
+			{
+				std::cout << "Socket successfully listening on port 8888." << std::endl;
+				Socket newConnection;
+				if (socket.Accept(newConnection) == PResult::P_Success)
+				{
+					std::cout << "New connection accepted." << std::endl;
+
+					std::string buffer = "";
+					while (true)
+					{
+						uint32_t bufferSize = 0;
+						int result = newConnection.RecvAll(&bufferSize, sizeof(uint32_t));
+						if (result != PResult::P_Success)
+							break;
+
+						bufferSize = ntohl(bufferSize);
+
+						if (bufferSize > g_MaxPacketSize)
+							break;
+
+						buffer.resize(bufferSize);
+						result = newConnection.RecvAll(&buffer[0], bufferSize);
+						if (result != PResult::P_Success)
+							break;
+
+						std::cout << "[" << bufferSize << "]" << buffer << std::endl;
+					}
+					newConnection.Close();
+				}
+				else
+				{
+					std::cerr << "Failed to accept new connection." << std::endl;
+				}
+			}
+			else
+			{
+				std::cerr << "Failed to Listen on port 8888." << std::endl;
+			}
+
 			socket.Close();
 		}
 		else

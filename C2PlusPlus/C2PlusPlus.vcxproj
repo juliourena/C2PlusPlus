@@ -143,6 +143,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Module.h" />
+    <ClInclude Include="Constants.h" />
     <ClInclude Include="IPEndpoint.h" />
     <ClInclude Include="IPVersion.h" />
     <ClInclude Include="PResult.h" />
@@ -154,6 +156,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IPEndpoint.cpp" />
+    <ClCompile Include="Module.cpp" />
     <ClCompile Include="Network.cpp" />
     <ClCompile Include="Socket.cpp" />
   </ItemGroup>

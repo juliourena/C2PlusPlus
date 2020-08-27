@@ -1,5 +1,6 @@
 #include "Socket.h"
 #include <assert.h>
+#include <iostream>
 
 namespace C2PlusPlus
 {
@@ -15,7 +16,7 @@ namespace C2PlusPlus
 
 		if (handle != INVALID_SOCKET)
 		{
-			return PResult::P_NotYetImplemented;
+			return PResult::P_GenericError;
 		}
 
 		handle = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); // attempt to create socket
@@ -23,12 +24,12 @@ namespace C2PlusPlus
 		if (handle == INVALID_SOCKET)
 		{
 			int error = WSAGetLastError();
-			return PResult::P_NotYetImplemented;
+			return PResult::P_GenericError;
 		}
 
 		if (SetSocketOption(SocketOption::TCP_NoDelay, TRUE) != PResult::P_Success)
 		{
-			return PResult::P_NotYetImplemented;
+			return PResult::P_GenericError;
 		}
 
 		return PResult::P_Success;
@@ -38,7 +39,7 @@ namespace C2PlusPlus
 	{
 		if (handle == INVALID_SOCKET)
 		{
-			return PResult::P_NotYetImplemented;
+			return PResult::P_GenericError;
 		}
 
 		int result = closesocket(handle);
@@ -46,10 +47,136 @@ namespace C2PlusPlus
 		if (result != 0) //if errror ocurred while trying to close socket
 		{
 			int error = WSAGetLastError();
-			return PResult::P_NotYetImplemented;
+			return PResult::P_GenericError;
 		}
 
 		handle = INVALID_SOCKET;
+		return PResult::P_Success;
+	}
+
+	PResult Socket::Bind(IPEndpoint endpoint)
+	{
+		sockaddr_in addr = endpoint.GetSockaddrIPv4();
+		int result = bind(handle, (sockaddr*)(&addr), sizeof(sockaddr_in));
+		if (result != 0) // if an error occurred
+		{
+			int error = WSAGetLastError();
+			return PResult::P_GenericError;
+		}
+		return PResult::P_Success;
+	}
+
+	PResult Socket::Listen(IPEndpoint endpoint, int backlog)
+	{
+		if (Bind(endpoint) != PResult::P_Success)
+		{
+			return PResult::P_GenericError;
+		}
+
+		int result = listen(handle, backlog);
+		if (result != 0) // if an error occur
+		{
+			int error = WSAGetLastError();
+			return PResult::P_GenericError;
+		}
+
+		return PResult::P_Success;
+	}
+
+	PResult Socket::Accept(Socket& outSocket)
+	{
+		sockaddr_in addr = {};
+		int len = sizeof(sockaddr_in);
+		SocketHandle acceptedConnectionHandle = accept(handle, (sockaddr*)(&addr), &len);
+		if (acceptedConnectionHandle == INVALID_SOCKET)
+		{
+			int error = WSAGetLastError();
+			return PResult::P_GenericError;
+		}
+		IPEndpoint newConnectionEndpoint((sockaddr*)&addr);
+		std::cout << "New connection accepted!" << std::endl;
+		newConnectionEndpoint.Print();
+		outSocket = Socket(IPVersion::IPv4, acceptedConnectionHandle);
+		return PResult::P_Success;
+	}
+
+	PResult Socket::Connect(IPEndpoint endpoint)
+	{
+		sockaddr_in addr = endpoint.GetSockaddrIPv4();
+		int result = connect(handle, (sockaddr*)(&addr), sizeof(sockaddr_in));
+		if (result != 0)
+		{
+			int error = WSAGetLastError();
+			return PResult::P_GenericError;
+		}
+		return PResult::P_Success;
+	}
+
+	PResult Socket::Send(const void * data, int numberOfBytes, int& bytesSent)
+	{
+		bytesSent = send(handle, (const char*)data, numberOfBytes, NULL);
+		if (bytesSent == SOCKET_ERROR)
+		{
+			int error = WSAGetLastError();
+			return PResult::P_GenericError;
+		}
+		return PResult::P_Success;
+	}
+
+	PResult Socket::Recv(void* destination, int numberOfBytes, int& bytesReceived)
+	{
+		bytesReceived = recv(handle, (char*)destination, numberOfBytes, NULL);
+		
+		if (bytesReceived == 0) // If connection was gracefully closed
+		{
+			return PResult::P_GenericError;
+		}
+
+		if (bytesReceived == SOCKET_ERROR)
+		{
+			int error = WSAGetLastError();
+			return PResult::P_GenericError;
+		}
+		return PResult::P_Success;
+	}
+
+	PResult Socket::SendAll(const void * data, int numberOfBytes)
+	{
+		int totalBytesSent = 0;
+
+		while (totalBytesSent < numberOfBytes)
+		{
+			int bytesRemaining = numberOfBytes - totalBytesSent;
+			int bytesSent = 0;
+			char * bufferOffeset = (char*)data + totalBytesSent;
+			PResult result = Send(bufferOffeset, bytesRemaining, bytesSent);
+			if (result != PResult::P_Success)
+			{
+				return PResult::P_GenericError;
+			}
+			totalBytesSent += bytesSent;
+		}
+
+		return PResult::P_Success;
+	}
+
+	PResult Socket::RecvAll(void* destination, int numberOfBytes)
+	{
+		int totalBytesReceived = 0;
+
+		while (totalBytesReceived < numberOfBytes)
+		{
+			int bytesRemaining = numberOfBytes - totalBytesReceived;
+			int bytesReceived = 0;
+			char* bufferOffeset = (char*)destination + totalBytesReceived;
+			PResult result = Recv(bufferOffeset, bytesRemaining, bytesReceived);
+			if (result != PResult::P_Success)
+			{
+				return PResult::P_GenericError;
+			}
+			totalBytesReceived += bytesReceived;
+		}
+
 		return PResult::P_Success;
 	}
 
@@ -71,13 +198,13 @@ namespace C2PlusPlus
 			result = setsockopt(handle, IPPROTO_TCP, TCP_NODELAY, (const char*)&value, sizeof(value));
 			break;
 		default:
-			return PResult::P_NotYetImplemented;
+			return PResult::P_GenericError;
 		}
 
 		if (result != 0)
 		{
 			int error = WSAGetLastError();
-			return PResult::P_NotYetImplemented;
+			return PResult::P_GenericError;
 		}
 
 		return PResult::P_Success;
