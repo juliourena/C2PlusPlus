@@ -42,7 +42,7 @@ int main()
 		std::cout << clientList[1].id << std::endl;
 	}
 
-	while (true)
+	/*while (true)
 	{
 		Module module;
 		std::string command = "";
@@ -54,10 +54,10 @@ int main()
 
 		if (command == "exit")
 			break;
-	}
+	}*/
 	
 
-	/*
+	
 	if (Network::Initialize())
 	{
 		std::cout << "Winsock api successfully initialized." << std::endl;
@@ -66,7 +66,7 @@ int main()
 		if (socket.Create() == PResult::P_Success)
 		{
 			std::cout << "Socket successfully created." << std::endl;
-			if (socket.Connect(IPEndpoint("127.0.0.1", 8888)) == PResult::P_Success)
+			if (socket.Connect(IPEndpoint("192.168.26.145", 8888)) == PResult::P_Success)
 			{
 				Client::Metadata metadata;
 				Module module;
@@ -139,7 +139,7 @@ int main()
 		{
 			std::cerr << "Socket failed to create." << std::endl;
 		}
-	}*/
+	}
 	Network::Shutdown();
 	system("pause");
 	return 0;

@@ -8,12 +8,13 @@ namespace C2PlusPlus
 	{
 	public:
 		std::string Cmd(const std::string& command);
+		std::string RunPowerShell(const std::string& command);
 		std::string GetCurrentUserName();
 		std::string PWD();
 		std::string ListCurrentDir(std::string path);
 		std::string ListCurrentDir();
-		std::string ChangeDir();
-		std::string Cat();
+		std::string ChangeDir(const std::string& directory);
+		std::string Cat(const std::string& file);
 		std::string static Random();
 		std::string Execute(std::string buffer);
 	private:
