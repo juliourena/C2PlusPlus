@@ -1,10 +1,12 @@
 #include "Metadata.h"
 #include <winsock.h>
+#include <C2PlusPlus/Module.h>
 
 Client::Metadata::Metadata()
 {
 	GetCurrentUserName();
 	GetCurrentProccessInfo();
+	id = C2PlusPlus::Module::Random();
 }
 
 std::string getFileName(const std::string& s)

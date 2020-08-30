@@ -19,6 +19,9 @@
     <Filter Include="Header Files\Modules">
       <UniqueIdentifier>{854ba6cd-6247-4f56-99c9-f4053e4c8d9f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Structs">
+      <UniqueIdentifier>{3f17d551-8fe1-4d2f-94a8-c61e8159d0e5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Constants.h">
@@ -50,6 +53,9 @@
     </ClInclude>
     <ClInclude Include="Module.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Clients.h">
+      <Filter>Header Files\Structs</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

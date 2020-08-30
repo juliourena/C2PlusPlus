@@ -9,6 +9,7 @@ namespace Client
 		Metadata();
 		void GetCurrentUserName();
 		void GetCurrentProccessInfo();
+		std::string id = "";
 		std::string username = "";
 		int processId = 0;
 		std::string processName = "";

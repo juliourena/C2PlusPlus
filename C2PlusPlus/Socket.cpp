@@ -94,7 +94,7 @@ namespace C2PlusPlus
 			return PResult::P_GenericError;
 		}
 		IPEndpoint newConnectionEndpoint((sockaddr*)&addr);
-		std::cout << "New connection accepted!" << std::endl;
+		//std::cout << "New connection accepted!" << std::endl;
 		newConnectionEndpoint.Print();
 		outSocket = Socket(IPVersion::IPv4, acceptedConnectionHandle);
 		return PResult::P_Success;

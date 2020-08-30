@@ -101,7 +101,9 @@ namespace C2PlusPlus
 	}
 	void IPEndpoint::Print()
 	{
-		switch (ipversion)
+		std::cout << "[+] Client connected from: " << ip_string << std::endl;
+
+		/*switch (ipversion)
 		{
 		case IPVersion::IPv4:
 			std::cout << "IP Version: IPv4" << std::endl;
@@ -120,6 +122,6 @@ namespace C2PlusPlus
 		for (auto & digit : ip_bytes)
 		{
 			std::cout << (int)digit << std::endl;
-		}
+		}*/
 	}
 }
